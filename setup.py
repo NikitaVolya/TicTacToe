@@ -12,24 +12,8 @@ class Users:
         return None
 
 SPACE = " "
-
-def copy_table(table: list[list[str]]) -> list[list[str]]:
-    rep = []
-    for i in range(len(table)):
-        rep.append(table[i].copy())
-    return rep
-
-def table_comparison(table1: list[list[str]], table2: list[list[str]]) -> bool:
-    for i in range(3):
-        for j in range(3):
-            if table1[i][j] != table2[i][j]:
-                return False
-    return True
-
-def print_table(table):
-    for row in table:
-        print("|", end=" ")
-        for symbl in row:
-            print(symbl, end=" ")
-        print("|")
-    print()
+DEBUG_MOD = True
+AI_SCORE_FOR_WIN = 10
+AI_SCORE_FOR_LOSE = -5
+AI_SCORE_FOR_DRAW = 0
+PLANNED_STEPS = 2 # 2 -> dump 3-4 -> very easy 5 -> normal 6 -> hard 7-9 impossible
