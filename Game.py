@@ -14,8 +14,16 @@ class Game:
             [SPACE] * 3,
             [SPACE] * 3]
         )
-        self.ai_strategy: Root = Root(self.table)
-        self.__game_cycle = False
+        self.ai_strategy: Root = None
+        self.__game_cycle = True
+
+    def PlayerStep(self, position: tuple[int, int], symbl: str = Users.First) -> bool:
+        x, y = position
+        if not (0 <= x <= 2) or not (0 <= y <= 2) or self.table[x, y] != SPACE:
+            return False
+
+        self.table[x, y] = symbl
+        return True
 
     def AIStep(self):
         best_ai_state = self.ai_strategy.getBestChild()
@@ -23,56 +31,64 @@ class Game:
             raise "Ai strategy not found"
 
         self.ai_strategy = best_ai_state
+        self.ai_strategy.deleteParent()
         self.table = self.ai_strategy.Table
-        TicTacToeTreeBuilder.generate(self.ai_strategy, Users.Player)
+        TicTacToeTreeBuilder.generate(self.ai_strategy, Users.First)
 
 
     def UpdateAI(self):
         self.ai_strategy = self.ai_strategy.findChild(self.table)
 
-    def __GameStop(self):
-        self.__game_cycle = False
+    def CheckGameOver(self) -> bool:
+        if TicTacToe.checkGame(self.table):
+            self.__game_cycle = False
+            return True
+        return False
 
     def __GameUpdate(self):
         print(self.table)
         x, y = [int(x) for x in input("Position (x, y): ").split(", ")]
 
-        if not (1 <= x <= 3) or not (1 <= y <= 3) or self.table[y - 1, x - 1] != SPACE:
-            return
-
-        self.table[y - 1, x - 1] = Users.Player
-
-
-        if TicTacToe.checkGame(self.table):
-            self.__GameStop()
+        if not self.PlayerStep((x, y)) or self.CheckGameOver():
             return
 
         self.UpdateAI()
         self.AIStep()
 
-        if TicTacToe.checkGame(self.table):
-            self.__GameStop()
+        self.CheckGameOver()
+
+    @property
+    def IsRun(self) -> bool:
+        self.CheckGameOver()
+        return self.__game_cycle
+
+    def AIinit(self, first_symbl: str = Users.First):
+        self.ai_strategy = Root(self.table)
+        TicTacToeTreeBuilder.generate(self.ai_strategy, first_symbl)
+        if first_symbl == Users.Second:
+            self.AIStep()
+
+    def AIDestroy(self):
+        self.ai_strategy = None
+
+    def GameOverText(self):
+        winner = TicTacToe.checkGame(self.table)
+        if winner == "draw":
+            return "DRAW!!!"
+        elif winner:
+            return winner + " WIN!"
+        return ""
 
     def GameStart(self):
         self.__game_cycle = True
-        choice = int(input("How is first?\n1. user\n2. ai\n"))
-        if choice == 1:
-            TicTacToeTreeBuilder.generate(self.ai_strategy, Users.Player)
-        elif choice == 2:
-            TicTacToeTreeBuilder.generate(self.ai_strategy, Users.AI)
-            self.AIStep()
-        else:
-            return
+        choice = Users.First if int(input("How is first?\n1. user\n2. ai\n")) == 1 else Users.Second
+        self.AIinit(choice)
 
         while self.__game_cycle:
             self.__GameUpdate()
 
         print(self.table)
-        winner = TicTacToe.checkGame(self.table)
-        if winner == "draw":
-            print("DRAW!!!")
-        else:
-            print(winner, " WIN!")
+        print(self.GameOverText())
 
 class DebugGame(Game):
 
@@ -83,6 +99,6 @@ class DebugGame(Game):
         super(DebugGame, self).UpdateAI()
         for i in range(self.ai_strategy.ChildNumber):
             print(self.ai_strategy.getChild(i).Table, end=" ")
-            print(f"{self.ai_strategy.getChild(i).Score:15.3f}")
+            print(f"{self.ai_strategy.getChild(i).Score:15.3f}\n")
         print()
         

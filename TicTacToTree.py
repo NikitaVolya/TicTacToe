@@ -94,9 +94,9 @@ class Leaf(Node):
         winner = TicTacToe.GameIsEnd(self._table)
         if not winner:
             self._score = AI_SCORE_FOR_DRAW
-        if winner == Users.Player:
+        if winner == Users.First:
             self._score = AI_SCORE_FOR_LOSE
-        if winner == Users.AI:
+        if winner == Users.Second:
             self._score = AI_SCORE_FOR_WIN
         if self._parent:
             self._parent.CalculateScore()

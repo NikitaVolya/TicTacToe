@@ -35,6 +35,6 @@ class TicTacToeTreeBuilder:
             TicTacToeTreeBuilder.__generate_opportunities(root.getChild(i), Users.switch(point), steps - 1)
 
     @staticmethod
-    def generate(root: Root, point = Users.Player):
+    def generate(root: Root, point = Users.First):
         TicTacToeTreeBuilder.__generate_opportunities(root, point, PLANNED_STEPS)
         return root
