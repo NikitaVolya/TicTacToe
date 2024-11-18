@@ -1,7 +1,8 @@
-from idlelib.pyshell import usage_msg
-from tkinter import Tk, Button, Label, font
+from tkinter import Tk, Button, Label, font, Radiobutton, StringVar
+
+from DegugOutput import DebugOutput
 from Game import Game, DebugGame
-from setup import Users, MAIN_GRID, GAME_GRID, DEBUG_MOD
+from setup import Users, MAIN_GRID, GAME_GRID, DEBUG_MOD, SETTINGS_GRID, LEVELS
 
 
 class GameGUI(Tk):
@@ -9,7 +10,7 @@ class GameGUI(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.title("TicTacToe")
-        self.minsize(720, 720)
+        self.minsize(360, 360)
 
         self.ai: bool = False
         self.step: str = Users.First
@@ -19,32 +20,7 @@ class GameGUI(Tk):
         self.game_label = None
 
         self.LARGE_FONT = font.Font(family="Helvetica", size=40, weight="bold")
-
-    def AIInput(self):
-        print("AIInput")
-        self.game.UpdateAI()
-        self.game.AIStep()
-        self.step = Users.First
-        self.RenderGameGrid()
-
-    def PlayerInput(self, position: tuple[int, int]):
-        if not self.game.IsRun:
-            return
-        if not self.game.PlayerStep(position, self.step):
-            return
-
-        self.step = Users.switch(self.step)
-        self.RenderGameGrid()
-
-        if self.AI and self.game.IsRun:
-            print(self.AI)
-            self.AIInput()
-
-    def SetGridConfig(self, rows: list[tuple[int, int]], columns: list[tuple[int, int]]) -> None:
-        for row_index, row_weight in rows:
-            self.grid_rowconfigure(row_index, weight=row_weight)
-        for column_index, column_weight in columns:
-            self.grid_columnconfigure(column_index, weight=column_weight)
+        self.MIDDLE_FONT = font.Font(family="Helvetica", size=10, weight="bold")
 
     def ClearWindow(self):
         for widget in self.winfo_children():
@@ -59,6 +35,33 @@ class GameGUI(Tk):
         if not self.game.IsRun:
             self.game_label.config(text=self.game.GameOverText())
 
+    def AIInput(self):
+        DebugOutput.print("AIInput")
+
+        self.game.UpdateAI()
+        self.game.AIStep()
+
+        self.step = Users.First
+        self.RenderGameGrid()
+
+    def PlayerInput(self, position: tuple[int, int]):
+        if not self.game.IsRun:
+            return
+        if not self.game.PlayerStep(position, self.step):
+            return
+
+        self.step = Users.switch(self.step)
+        self.RenderGameGrid()
+
+        if self.game.ai_strategy and self.game.IsRun:
+            self.AIInput()
+
+    def SetGridConfig(self, rows: list[tuple[int, int]], columns: list[tuple[int, int]]) -> None:
+        for row_index, row_weight in rows:
+            self.grid_rowconfigure(row_index, weight=row_weight)
+        for column_index, column_weight in columns:
+            self.grid_columnconfigure(column_index, weight=column_weight)
+
     # noinspection PyTypeChecker,PyUnresolvedReferences
     def CreateGameGrid(self):
         self.SetGridConfig(*GAME_GRID)
@@ -70,57 +73,55 @@ class GameGUI(Tk):
         for i in range(3):
             for j in range(3):
                 self.game_buttons[i][j] = Button(self, text="",
-                    command=lambda position = (i, j): GameGUI.PlayerInput(self, position))
+                    command=lambda position = (i, j): GameGUI.PlayerInput(self, position),
+                    font=self.MIDDLE_FONT)
                 self.game_buttons[i][j].grid(row=i + 1, column=j + 1, sticky="nsew")
 
-        quit_button = Button(self, text="quit", command=self.MainMenu)
-        quit_button.grid(row=4, column=0, columnspan=5)
+        Button(self, text="quit", command=self.MainMenu).grid(row=4, column=0, columnspan=5)
 
         self.game_label = Label(self, text="Hello world", font=self.LARGE_FONT)
         self.game_label.grid(row = 0, column=0, columnspan=5)
 
-    @property
-    def AI(self):
-        return self.ai
-
-    @AI.setter
-    def AI(self, value: bool):
-        if self.ai != value:
-            if value:
-                print("AI Init")
-                self.game.AIinit(self.step)
-            else:
-                self.game.AIDestroy()
-            print(value)
-            self.ai = value
-
-    def PvAImode(self):
-
+    def AISettingsScreen(self):
         self.ClearWindow()
-        self.CreateGameGrid()
+        self.SetGridConfig(*SETTINGS_GRID)
 
-        if self.game:
-            self.AI = False
-            self.game = None
+        step_choice = StringVar(None, Users.First)
+        level_choice = StringVar(None, "normal")
 
-        if DEBUG_MOD:
-            self.game = DebugGame()
-        else:
-            self.game = Game()
+        Label(self, text="How is first?", font=self.MIDDLE_FONT).grid(row = 0, column = 0)
+        Radiobutton(self, text='Player', variable=step_choice, value=Users.First, font=self.MIDDLE_FONT).grid(row=0, column=1)
+        Radiobutton(self, text='AI', variable=step_choice, value=Users.Second, font=self.MIDDLE_FONT).grid(row=0, column=2)
 
-        self.AI = True
+        Label(self, text="level: ", font=self.MIDDLE_FONT).grid(row=2, column=0)
+        for i, key in enumerate(LEVELS.keys()):
+            Radiobutton(self, text=key, variable=level_choice, value=key, font=self.MIDDLE_FONT).grid(
+                row=i + 2, column=1, sticky="W")
+
+        (Button(self, text="Start game", command=lambda :self.PvAImode(step_choice.get(), level_choice.get())).
+         grid(column=0, columnspan=4, row=3+len(LEVELS)))
+
+        self.mainloop()
+
+    def PvAImode(self, step: str, level_choice: str):
+        self.game = DebugGame() if DEBUG_MOD else Game()
+        self.step = step
+        self.game.planed_steps = LEVELS[level_choice]
+        DebugOutput.print("Game init: ", self.step, " ", self.game.planed_steps)
+
+        self.game.AIinit(self.step)
         if self.step == Users.Second:
             self.step = Users.First
 
+        self.ClearWindow()
+        self.CreateGameGrid()
         self.RenderGameGrid()
 
     def PvPMode(self):
         self.ClearWindow()
         self.CreateGameGrid()
         self.game = Game()
-
-        self.AI = False
-
+        self.game.ai_strategy = None
         self.RenderGameGrid()
 
     def MainMenu(self):
@@ -128,12 +129,8 @@ class GameGUI(Tk):
 
         self.SetGridConfig(*MAIN_GRID)
 
-        main_label = Label(self, text="Python TicTacToe!!!", font=self.LARGE_FONT)
-        pvp_button = Button(self, text="mode PvP", command=self.PvPMode)
-        pvai_button = Button(self, text="mode PvAI", command=self.PvAImode)
-
-        main_label.grid(row=0, column=0, columnspan=2, sticky="nsew")
-        pvp_button.grid(row=1, column=0, sticky="nsew")
-        pvai_button.grid(row=1, column=1, sticky="nsew")
+        Label(self, text="Python TicTacToe!!!", font=self.LARGE_FONT).grid(row=0, column=0, columnspan=2, sticky="nsew")
+        Button(self, text="mode PvP", command=self.PvPMode).grid(row=1, column=0, sticky="nsew")
+        Button(self, text="mode PvAI", command=self.AISettingsScreen).grid(row=1, column=1, sticky="nsew")
 
         self.mainloop()

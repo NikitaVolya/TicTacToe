@@ -1,8 +1,8 @@
-from logging import raiseExceptions
+
 from random import choice
 
 from TicTacToe import TicTacToe
-from setup import Users, AI_SCORE_FOR_DRAW, AI_SCORE_FOR_LOSE, AI_SCORE_FOR_WIN, PLANNED_STEPS
+from setup import Users, AI_SCORE_FOR_DRAW, AI_SCORE_FOR_LOSE, AI_SCORE_FOR_WIN
 from Table import Table
 
 class Node:
@@ -44,22 +44,21 @@ class Root(Node):
         self.__children: [Node] = []
         super(Root, self).__init__(table)
 
-    def CalculateScore(self):
+    def CalculateScore(self) -> None:
         rep: int = 0
         for node in self.__children:
-            rep += node.Score / PLANNED_STEPS
+            rep += node.Score / 10
         self._score = rep
 
         if self.Parent:
             self.Parent.CalculateScore()
 
-    def appChild(self, child: Node):
+    def appChild(self, child: Node) -> None:
         self.__children.append(child)
         child.setParent(self)
         self.CalculateScore()
 
-
-    def findChild(self, table: Table):
+    def findChild(self, table: Table) -> Node | None:
         for child in self.__children:
             if child.Table == table:
                 return child

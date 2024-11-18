@@ -95,7 +95,6 @@ class Table:
             return -1
         return i.Value // self.__width, i.Value % self.__width
 
-
     def __str__(self) -> str:
         def step(element, text_pointer, index):
             text_pointer.Value += str(element) + " "

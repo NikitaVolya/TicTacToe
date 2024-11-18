@@ -15,6 +15,7 @@ class Game:
             [SPACE] * 3]
         )
         self.ai_strategy: Root = None
+        self.planed_steps = 5
         self.__game_cycle = True
 
     def PlayerStep(self, position: tuple[int, int], symbl: str = Users.First) -> bool:
@@ -64,7 +65,7 @@ class Game:
 
     def AIinit(self, first_symbl: str = Users.First):
         self.ai_strategy = Root(self.table)
-        TicTacToeTreeBuilder.generate(self.ai_strategy, first_symbl)
+        TicTacToeTreeBuilder.generate(self.ai_strategy, first_symbl, self.planed_steps)
         if first_symbl == Users.Second:
             self.AIStep()
 
