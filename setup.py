@@ -20,7 +20,7 @@ LEVELS  = {
             "dumb": 2,
             "easy": 4,
             "normal": 5,
-            "hard": 6,
+            "hard": 7,
             "impossible": 9
         }
 

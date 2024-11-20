@@ -1,10 +1,13 @@
 from msilib import Table
 
+from PIL.ImageOps import mirror
+
 from TicTacToeTreeBuilder import TicTacToeTreeBuilder
 from TicTacToe import TicTacToe
 from setup import Users, SPACE
 from TicTacToTree import Root
-from Table import Table
+from Table import Table, MirrorTable
+
 
 class Game:
 
@@ -31,9 +34,13 @@ class Game:
         if best_ai_state is None:
             raise "Ai strategy not found"
 
+        rotate = self.ai_strategy.TablePtr.GetRotate(self.table)
         self.ai_strategy = best_ai_state
-        self.ai_strategy.deleteParent()
         self.table = self.ai_strategy.Table
+        if rotate != -1:
+            tmp = MirrorTable(self.ai_strategy.Table, rotate)
+            tmp.copyTo(self.table)
+
         TicTacToeTreeBuilder.generate(self.ai_strategy, Users.First)
 
 

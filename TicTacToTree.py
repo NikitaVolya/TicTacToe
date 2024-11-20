@@ -8,30 +8,26 @@ from Table import Table
 class Node:
 
     def __init__(self, table: Table):
-        self._parent: Node | None = None
-        self._table: Table = table.copy()
-        self._score = 0
-
-    def deleteParent(self):
-        self._parent = None
-
-    def setParent(self, value: 'Node'):
-        self._parent = value
+        self._table: Table = table
+        self._score = None
+        self.Weight = 1
 
     def CalculateScore(self):
         pass
 
     @property
-    def Parent(self) -> 'Node':
-        return self._parent
-
-    @property
     def Score(self) -> int:
+        if not self._score:
+            self.CalculateScore()
         return self._score
 
     @property
     def Table(self):
         return self._table.copy()
+
+    @property
+    def TablePtr(self):
+        return self._table
 
     @property
     def IsLeaf(self) -> bool:
@@ -47,20 +43,15 @@ class Root(Node):
     def CalculateScore(self) -> None:
         rep: int = 0
         for node in self.__children:
-            rep += node.Score / 10
+            rep += node.Score * node.Weight / 10
         self._score = rep
-
-        if self.Parent:
-            self.Parent.CalculateScore()
 
     def appChild(self, child: Node) -> None:
         self.__children.append(child)
-        child.setParent(self)
-        self.CalculateScore()
 
     def findChild(self, table: Table) -> Node | None:
         for child in self.__children:
-            if child.Table == table:
+            if child.Table.Equal(table):
                 return child
         return None
 
@@ -97,8 +88,6 @@ class Leaf(Node):
             self._score = AI_SCORE_FOR_LOSE
         if winner == Users.Second:
             self._score = AI_SCORE_FOR_WIN
-        if self._parent:
-            self._parent.CalculateScore()
 
     @property
     def IsLeaf(self) -> bool:
