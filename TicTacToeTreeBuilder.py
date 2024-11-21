@@ -6,7 +6,7 @@ from setup import SPACE, Users, LEVELS
 class TicTacToeTreeBuilder:
 
     @staticmethod
-    def __create_node(root: Root, point: str, i: int, is_leaf: bool = False) -> Node:
+    def __create_node(root: Root, point: str, i: int, is_leaf: bool = False) -> None:
         table = root.Table.copy()
         space_x, space_y = table.FindIndex(SPACE, number=i)
         table[space_x, space_y] = point
@@ -18,11 +18,11 @@ class TicTacToeTreeBuilder:
         else:
             node = Root(table)
 
-        sameChild = root.findChild(table)
-        if not sameChild:
+        same_child = root.findChild(table)
+        if not same_child:
             root.appChild(node)
         else:
-            sameChild.Weight += 1
+            same_child.Weight += 1
 
 
     @staticmethod
@@ -43,6 +43,5 @@ class TicTacToeTreeBuilder:
     def generate(root: Root, point = Users.First, steps=LEVELS["normal"]):
         DebugOutput.print("Start generate tree | steps:", steps)
         TicTacToeTreeBuilder.__generate_opportunities(root, point, steps)
-        score = root.Score
-        DebugOutput.print("Generate of tree is done! Root score: ", score)
+        DebugOutput.print("Generate of tree is done! Root score: ", root.Score)
         return root

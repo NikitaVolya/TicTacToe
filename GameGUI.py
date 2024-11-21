@@ -34,6 +34,7 @@ class GameGUI(Tk):
 
         if not self.game.IsRun:
             self.game_label.config(text=self.game.GameOverText())
+            self.game.ai_strategy = None
 
     def AIInput(self):
         DebugOutput.print("AIInput")
@@ -118,10 +119,11 @@ class GameGUI(Tk):
         self.RenderGameGrid()
 
     def PvPMode(self):
-        self.ClearWindow()
-        self.CreateGameGrid()
         self.game = Game()
         self.game.ai_strategy = None
+
+        self.ClearWindow()
+        self.CreateGameGrid()
         self.RenderGameGrid()
 
     def MainMenu(self):

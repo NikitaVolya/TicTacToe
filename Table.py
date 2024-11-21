@@ -127,24 +127,19 @@ class Table:
         return True
 
     def Equal(self, other: 'Table'):
-        return self == other or \
-            MirrorTable(self, Rotate.HORIZONTAL) == other or \
-            MirrorTable(self, Rotate.VERTICAL) == other or \
-            MirrorTable(self, Rotate.HORIZONTAL_VERTICAL) == other or\
-            MirrorTable(self, Rotate.SYMMETRIC) == other
+        if self == other:
+            return True
+        for rotate_filter in list(Rotate):
+            if MirrorTable(self, rotate_filter) == other:
+                return True
+        return False
 
 
     def GetRotate(self, other: 'Table'):
-        if self == MirrorTable(other, Rotate.HORIZONTAL):
-            return Rotate.HORIZONTAL
-        elif self == MirrorTable(other, Rotate.VERTICAL):
-            return Rotate.VERTICAL
-        elif self == MirrorTable(other, Rotate.HORIZONTAL_VERTICAL):
-            return Rotate.HORIZONTAL_VERTICAL
-        elif self == MirrorTable(other, Rotate.SYMMETRIC):
-            return Rotate.SYMMETRIC
-        else:
-            return -1
+        for rotate_filter in list(Rotate):
+            if self == MirrorTable(other, rotate_filter):
+                return rotate_filter
+        return Rotate.NONE
 
     def __getitem__(self, index_couple: tuple[int, int]) -> any:
         row, colum = index_couple
@@ -160,36 +155,38 @@ class Table:
 
 
 class Rotate(Enum):
-    HORIZONTAL = 0
-    VERTICAL = 1
-    HORIZONTAL_VERTICAL = 2
-    SYMMETRIC = 3
+    NONE = (False, False, False)
+    HORIZONTAL = (True, False, False)
+    VERTICAL = (False, True, False)
+    HORIZONTAL_VERTICAL = (True, True, False)
+    SYMMETRIC = (False, False, False)
+    SYMMETRIC_HORIZONTAL = (True, False, True)
+    SYMMETRIC_VERTICAL = (False, True, True)
 
 class MirrorTable(Table):
 
-    def __init__(self, table: Table, state = Rotate.HORIZONTAL):
+    def __init__(self, table: Table, state: Rotate):
         super(Table, self).__init__()
         self.set(table._data)
         self.__state = state
 
     def __getitem__(self, index_couple: tuple[int, int]):
         row, column = index_couple
-        if self.__state == Rotate.VERTICAL:
-            return self._data[self.Height - 1 - row][column]
-        elif self.__state == Rotate.HORIZONTAL:
-            return self._data[row][self.Width - 1 - column]
-        elif self.__state == Rotate.HORIZONTAL_VERTICAL:
-            return self._data[self.Height - 1 - row][self.Width - 1 - column]
-        elif self.__state == Rotate.SYMMETRIC:
-            return self._data[column][row]
+        if self.__state.value[0]:
+            row = self.Height - 1 - row
+        if self.__state.value[1]:
+            column = self.Width - 1 - column
+        if self.__state.value[2]:
+            row, column = column, row
+        return self._data[row][column]
 
 
 
 
 if __name__ == "__main__":
 
-    a = Table([["x", " ", " "], [" ", "o", " "], [" ", " ", " "]])
-    b = Table([[" ", " ", " "], [" ", "o", " "], [" ", " ", "x"]])
+    a = Table([[" ", " ", "O"], [" ", "X", "X"], [" ", " ", " "]])
+    b = Table([["O", "X", " "], [" ", "X", " "], [" ", " ", " "]])
     print(a)
     print(b)
     print(a.GetRotate(b))

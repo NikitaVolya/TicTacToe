@@ -1,7 +1,6 @@
 from msilib import Table
 
-from PIL.ImageOps import mirror
-
+from DegugOutput import DebugOutput
 from TicTacToeTreeBuilder import TicTacToeTreeBuilder
 from TicTacToe import TicTacToe
 from setup import Users, SPACE
@@ -36,12 +35,14 @@ class Game:
 
         rotate = self.ai_strategy.TablePtr.GetRotate(self.table)
         self.ai_strategy = best_ai_state
-        self.table = self.ai_strategy.Table
+        self.table = self.ai_strategy.Table.copy()
+
         if rotate != -1:
             tmp = MirrorTable(self.ai_strategy.Table, rotate)
             tmp.copyTo(self.table)
+            DebugOutput.print("ROTATED\n", tmp)
+        TicTacToeTreeBuilder.generate(self.ai_strategy, Users.First, steps=self.planed_steps)
 
-        TicTacToeTreeBuilder.generate(self.ai_strategy, Users.First)
 
 
     def UpdateAI(self):
@@ -105,8 +106,10 @@ class DebugGame(Game):
 
     def UpdateAI(self):
         super(DebugGame, self).UpdateAI()
+        print("======================")
         for i in range(self.ai_strategy.ChildNumber):
             print(self.ai_strategy.getChild(i).Table, end=" ")
             print(f"{self.ai_strategy.getChild(i).Score:15.3f}\n")
         print()
+
         
